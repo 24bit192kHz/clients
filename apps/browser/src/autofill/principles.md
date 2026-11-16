@@ -29,6 +29,8 @@ access to user data, so our content scripts should minimize their third-party de
   what it adds to the bundle.
   [Lit](https://lit.dev/) is the established choice for injected UI; prefer it over introducing
   another rendering library.
+**Prefer importing from Bitwarden libraries with tree shaking support.** When a library supports tree
+shaking, prefer a narrow import. When a library does not, import from a barrel file.
 
 ## Keep the injected data footprint small
 
@@ -42,8 +44,7 @@ and only at the moment they need it.
 
 - **Send projections of data, not full models.** Injected experiences receive only the properties they
   render or act on.
-- **Strip data in the background.** Build the projection in the background context before the message
-  is sent. Data that reaches the page and is filtered there has already been exposed.
+- **Process vault data in the extension.** Vault data processed in a content script is already vulnerable. Vault data processed by the page has already been exposed to an attacker.
 - **Send data when it is needed, not ahead of time.** Prefer sending data in response to the user
   engaging with an experience over pushing it into the page in anticipation of some need. Do not cache
   vault data in injected code longer than the experience that needs it.
