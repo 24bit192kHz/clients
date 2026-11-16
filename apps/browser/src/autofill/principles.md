@@ -44,7 +44,8 @@ and only at the moment they need it.
 
 - **Send projections of data, not full models.** Injected experiences receive only the properties they
   render or act on.
-- **Process vault data in the extension.** Vault data processed in a content script is already vulnerable. Vault data processed by the page has already been exposed to an attacker.
+- **Process vault data in the extension.** Vault data processed in a content script is already vulnerable.
+  Vault data processed by the page has already been exposed to an attacker.
 - **Send data when it is needed, not ahead of time.** Prefer sending data in response to the user
   engaging with an experience over pushing it into the page in anticipation of some need. Do not cache
   vault data in injected code longer than the experience that needs it.
@@ -67,7 +68,8 @@ and only at the moment they need it.
 
 ## We are guests on the page
 
-Autofill is a utility. Everything we do comes at a cost to the user's primary task. Respect the user's resources, including their attention.
+Autofill is a utility. Everything we do comes at a cost to the user's primary task. 
+Respect the user's resources, including their attention.
 
 - **Measure before and after.** Use the [content script instrumentation](./content/performance.md) to
   quantify hot-path changes rather than reasoning about their cost. Its
@@ -160,8 +162,8 @@ user types or Bitwarden fills into it, and a compromised legitimate site is usua
 from the uncompromised one. Autofill does not guarantee protection from such a page.
 
 Autofill still makes a basic, best-effort attempt to resist hostile pages, provided the cost of defense is
-proportionate to the risk to the user and does not degrade legitimate pages. Where the autofill experience must degrade as a
-consequence of safety or performance, it should do so gracefully.
+proportionate to the risk to the user and does not degrade legitimate pages. Where the autofill 
+experience must degrade as a consequence of safety or performance, it should do so gracefully.
 
 - **Fill only where the credential belongs.** Gate fills on the saved login's URIs matching where the
   fill lands; handle mismatches as described in
