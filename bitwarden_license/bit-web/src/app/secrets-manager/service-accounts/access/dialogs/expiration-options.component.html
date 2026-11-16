@@ -14,9 +14,12 @@
     <input
       bitInput
       type="datetime-local"
-      [min]="currentDate | date: 'YYYY-MM-ddThh:mm'"
-      [max]="maxDate | date: 'YYYY-MM-ddThh:mm'"
+      [min]="currentDate | date: 'yyyy-MM-ddTHH:mm'"
+      [max]="maxDate | date: 'yyyy-MM-ddTHH:mm'"
       formControlName="expireDateTime"
+      (input)="syncExpireDateTime($event)"
+      (change)="syncExpireDateTime($event)"
+      (blur)="syncExpireDateTime($event)"
     />
   </bit-form-field>
 </ng-container>

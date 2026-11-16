@@ -57,6 +57,10 @@ export class ExpirationOptionsComponent
   currentDate = new Date();
   maxDate = new Date(9999, 11, 31, 23, 59);
 
+  // True when the browser reports that what the user typed into the date input is not a
+  // usable date, or falls outside the min/max range. See syncExpireDateTime.
+  private nativeInputInvalid = false;
+
   protected form = new FormGroup({
     expires: new FormControl("never", [Validators.required]),
     expireDateTime: new FormControl("", [Validators.required, this.expiresInFutureValidator()]),
@@ -107,7 +111,7 @@ export class ExpirationOptionsComponent
     if (value) {
       this.form.setValue({
         expires: "custom",
-        expireDateTime: this.datePipe.transform(value, "YYYY-MM-ddThh:mm"),
+        expireDateTime: this.datePipe.transform(value, "yyyy-MM-ddTHH:mm"),
       });
     }
   }
@@ -128,20 +132,56 @@ export class ExpirationOptionsComponent
     return currentDate;
   }
 
+  /**
+   * Keeps the form control in step with what the date input actually holds.
+   *
+   * Safari only raises the `input` event for a datetime-local field once it considers the
+   * whole value complete, so Angular's value accessor can leave the control holding an older,
+   * valid value while the user is typing an oversized year. Reading the element directly on
+   * every input, change and blur event means the validator always sees the current value,
+   * and the browser's own validity flags catch anything it refused to turn into a value.
+   */
+  protected syncExpireDateTime(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const validity = input.validity;
+    this.nativeInputInvalid =
+      validity.badInput || validity.rangeOverflow || validity.rangeUnderflow;
+
+    const control = this.form.controls.expireDateTime;
+    if (control.value !== input.value) {
+      control.setValue(input.value);
+    } else {
+      control.updateValueAndValidity();
+    }
+    if (event.type === "blur") {
+      control.markAsTouched();
+    }
+  }
+
   expiresInFutureValidator(): ValidatorFn {
-    // Only accept a normal 4-digit year in the format: YYYY-MM-DDTHH:MM
-    const dateTimeLocalPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+    // Only accept a normal 4-digit year in the format YYYY-MM-DDTHH:MM, with optional
+    // seconds and milliseconds since some browsers include them in the value.
+    const dateTimeLocalPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?$/;
     const invalidResult: ValidationErrors = {
       ValidationError: { message: this.i18nService.t("expirationDateError") },
     };
 
     return (control: AbstractControl): ValidationErrors | null => {
+      if (this.nativeInputInvalid) {
+        return invalidResult;
+      }
+
       const value = control.value;
       if (typeof value !== "string" || !dateTimeLocalPattern.test(value)) {
         return invalidResult;
       }
 
-      return new Date(value) > new Date() ? null : invalidResult;
+      const enteredDate = new Date(value);
+      if (isNaN(enteredDate.getTime()) || enteredDate > this.maxDate) {
+        return invalidResult;
+      }
+
+      return enteredDate > new Date() ? null : invalidResult;
     };
   }
 }
