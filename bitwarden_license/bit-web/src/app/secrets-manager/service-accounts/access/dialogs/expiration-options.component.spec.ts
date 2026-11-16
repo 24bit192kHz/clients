@@ -51,6 +51,28 @@ describe("ExpirationOptionsComponent", () => {
     });
   });
 
+  describe("value handed to the parent form", () => {
+    it("is null while the custom date is invalid", async () => {
+      const onChange = jest.fn();
+      component.registerOnChange(onChange);
+      await component.ngOnInit();
+
+      component["form"].setValue({ expires: "custom", expireDateTime: "06152031" });
+
+      expect(onChange).toHaveBeenLastCalledWith(null);
+    });
+
+    it("is the parsed date once the custom date is valid", async () => {
+      const onChange = jest.fn();
+      component.registerOnChange(onChange);
+      await component.ngOnInit();
+
+      component["form"].setValue({ expires: "custom", expireDateTime: futureDate });
+
+      expect(onChange).toHaveBeenLastCalledWith(new Date(futureDate));
+    });
+  });
+
   describe("syncExpireDateTime", () => {
     const control = () => component["form"].controls.expireDateTime;
 

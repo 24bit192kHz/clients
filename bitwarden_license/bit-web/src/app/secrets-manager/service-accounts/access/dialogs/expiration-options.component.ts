@@ -125,6 +125,11 @@ export class ExpirationOptionsComponent
       return null;
     }
     if (this.form.value.expires == "custom") {
+      // While the custom date is invalid there is no usable date to hand to the parent.
+      // Without this guard a value such as "06152031" would become the year 61520.
+      if (this.form.controls.expireDateTime.invalid) {
+        return null;
+      }
       return new Date(this.form.value.expireDateTime);
     }
     const currentDate = new Date();
@@ -138,8 +143,9 @@ export class ExpirationOptionsComponent
    * Safari only raises the `input` event for a datetime-local field once it considers the
    * whole value complete, so Angular's value accessor can leave the control holding an older,
    * valid value while the user is typing an oversized year. Reading the element directly on
-   * every input, change and blur event means the validator always sees the current value,
-   * and the browser's own validity flags catch anything it refused to turn into a value.
+   * every input, change, blur and Enter event means the validator always sees the current
+   * value, and the browser's own validity flags catch anything it refused to turn into a value.
+   * Enter is included because it submits the form without blurring the field first.
    */
   protected syncExpireDateTime(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -147,9 +153,11 @@ export class ExpirationOptionsComponent
     this.nativeInputInvalid =
       validity.badInput || validity.rangeOverflow || validity.rangeUnderflow;
 
+    // The view is the source here, so do not write the value back into the element. Doing so
+    // can clear whatever the user is part way through typing.
     const control = this.form.controls.expireDateTime;
     if (control.value !== input.value) {
-      control.setValue(input.value);
+      control.setValue(input.value, { emitModelToViewChange: false });
     } else {
       control.updateValueAndValidity();
     }
